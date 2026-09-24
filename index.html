@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng Trung Thu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            color: #fff;
+            position: relative;
+        }
+
+        /* Canvas pháo hoa */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Mặt trăng & Thỏ */
+        .moon-container {
+            position: absolute;
+            top: 6%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+        .moon {
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #ffea85, #ffd700);
+            border-radius: 50%;
+            box-shadow: 0 0 50px #ffd700, 0 0 100px rgba(255, 215, 0, 0.4);
+            animation: pulse 4s infinite alternate;
+        }
+        .rabbit {
+            position: absolute;
+            font-size: 2.2rem;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        /* Khung thiệp */
+        .card {
+            background: rgba(20, 20, 35, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 25px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 215, 0, 0.2);
+            max-width: 90%;
+            width: 360px;
+            z-index: 10;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        h1 {
+            color: #ffd700;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+            line-height: 1.3;
+        }
+
+        .wish-box {
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        p#wish {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #fff8e7;
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        /* Nút tương tác */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+justify-content: center;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff4e50, #f9d423);
+            border: none;
+            color: #fff;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(249, 212, 35, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .music-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: none;
+        }
+
+        /* Đèn lồng bay */
+        .lantern {
+            position: absolute;
+            bottom: -50px;
+            font-size: 24px;
+            animation: floatUp linear infinite;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.9; }
+            90% { opacity: 0.9; }
+            100% { transform: translateY(-115vh) rotate(20deg); opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 40px #ffd700; }
+            100% { box-shadow: 0 0 70px #ffd700, 0 0 100px rgba(255, 215, 0, 0.6); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+    
+    <div class="moon-container">
+        <div class="moon"></div>
+        <div class="rabbit">🐇</div>
+    </div>
+
+    <div class="card">
+        <h1>🥮 CHÚC MỪNG<br>TRUNG THU 🌕</h1>
+        <div class="wish-box">
+            <p id="wish"></p>
+        </div>
+        <div class="btn-group">
+            <button id="nextBtn">✨ Lời Chúc Khác</button>
+            <button class="music-btn" id="musicBtn">🎵 Bật Nhạc</button>
+        </div>
+    </div>
+
+    <!-- Nhạc nền Trung Thu -->
+    <audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_180…f07a.mp3?filename=asian-traditional-chinese-music-112846.mp3"></audio>
+
+    <script>
+        // Danh sách lời chúc Trung Thu
+        var wishes = [
+            "🌕 Chúc Thảo có một đêm Trung Thu ấm áp, tràn ngập tiếng cười và hạnh phúc vẹn tròn!",
+            "✨ Chúc cho những ước mơ của em luôn tỏa sáng rực rỡ như ánh trăng rằm đêm nay!",
+            "🥮 Trung Thu đến rồi! Chúc em nhận được thật nhiều quà, bánh ngon và luôn giữ trọn niềm vui tươi trẻ!",
+           
+"🐇 Gửi gắm tình cảm theo ánh trăng rằm, chúc em luôn bình an, vui vẻ và thành công trên mọi chặng đường!",
+            "🎆 Chúc cuộc sống của em luôn tràn ngập màu sắc rực rỡ, ngọt ngào như hương vị của chiếc bánh Trung Thu!",
+            "🌕 Trăng tròn là lúc đoàn viên. Chúc em dù ở đâu cũng luôn cảm nhận được tình yêu thương từ gia đình!",
+        
+        ];
+
+        var currentIndex = 0;
+        var wishElem = document.getElementById('wish');
+
+        function updateWish() {
+            wishElem.style.opacity = 0;
+            setTimeout(function() {
+                wishElem.innerHTML = wishes[currentIndex];
+                wishElem.style.opacity = 1;
+            }, 300);
+        }
+
+        // Hiển thị lời chúc đầu tiên ngay khi mở web
+        updateWish();
+
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            currentIndex = (currentIndex + 1) % wishes.length;
+            updateWish();
+            createFireworkEffect();
+        });
+
+        // Xử lý bật/tắt nhạc
+        var music = document.getElementById('bgMusic');
+        var musicBtn = document.getElementById('musicBtn');
+        var isPlaying = false;
+
+        musicBtn.addEventListener('click', function() {
+            if (isPlaying) {
+                music.pause();
+                musicBtn.innerText = '🎵 Bật Nhạc';
+            } else {
+                music.play();
+                musicBtn.innerText = '🔊 Tắt Nhạc';
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // Tạo hiệu ứng đèn lồng bay
+        function createLantern() {
+            var lantern = document.createElement('div');
+            lantern.className = 'lantern';
+            var icons = ['🏮', '🥮', '⭐'];
+            lantern.innerText = icons[Math.floor(Math.random() * icons.length)];
+            lantern.style.left = (Math.random() * 85 + 5) + 'vw';
+            lantern.style.animationDuration = (Math.random() * 4 + 7) + 's';
+            document.body.appendChild(lantern);
+
+            setTimeout(function() {
+                lantern.remove();
+            }, 11000);
+        }
+        setInterval(createLantern, 1200);
+
+        // Hiệu ứng pháo hoa Canvas
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        var particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function Particle(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+this.radius = Math.random() * 3 + 1;
+            this.velocity = {
+                x: (Math.random() - 0.5) * 7,
+                y: (Math.random() - 0.5) * 7
+            };
+            this.alpha = 1;
+            this.friction = 0.96;
+        }
+
+        Particle.prototype.draw = function() {
+            ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.restore();
+        };
+
+        Particle.prototype.update = function() {
+            this.velocity.x *= this.friction;
+            this.velocity.y *= this.friction;
+            this.x += this.velocity.x;
+            this.y += this.velocity.y;
+            this.alpha -= 0.018;
+        };
+
+        function spawnFireworks(x, y) {
+            var colors = ['#ffd700', '#ff4e50', '#00f2fe', '#f9d423', '#ffffff'];
+            var color = colors[Math.floor(Math.random() * colors.length)];
+            for (var i = 0; i < 25; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function createFireworkEffect() {
+            var x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+            var y = Math.random() * canvas.height * 0.4 + canvas.height * 0.1;
+            spawnFireworks(x, y);
+        }
+
+        window.addEventListener('touchstart', function(e) {
+            if (e.target.tagName !== 'BUTTON') {
+                spaw
